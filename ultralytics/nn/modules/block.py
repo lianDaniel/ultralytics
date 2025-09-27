@@ -52,6 +52,8 @@ __all__ = (
     "PSA",
     "SCDown",
     "TorchVision",
+    "Depth2Space",
+    "Space2Depth",
 )
 
 
@@ -2029,3 +2031,39 @@ class SAVPE(nn.Module):
         aggregated = score.transpose(-2, -3) @ x.reshape(B, self.c, C // self.c, -1).transpose(-1, -2)
 
         return F.normalize(aggregated.transpose(-2, -3).reshape(B, Q, -1), dim=-1, p=2)
+
+
+class Depth2Space(nn.Module):
+    """Depth to Space module."""
+    def __init__(self, block_size: int = 2):
+        """Initialize Depth2Space module.
+        Args:
+            block_size (int): Block size for pixel shuffle.
+        """
+        super().__init__()
+        self.block_size = block_size
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass for Depth2Space."""
+        return F.pixel_shuffle(x, self.block_size)
+
+
+class Space2Depth(nn.Module):
+    """Space to Depth module."""
+    def __init__(self, block_size: int = 2):
+        """Initialize Space2Depth module.
+        Args:
+            block_size (int): Block size for space to depth.
+        """
+        super().__init__()
+        self.block_size = block_size
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass for Space2Depth."""
+        b, c, h, w = x.shape
+        unfolded_h = h // self.block_size
+        unfolded_w = w // self.block_size
+        x = x.view(b, c, unfolded_h, self.block_size, unfolded_w, self.block_size)
+        x = x.permute(0, 3, 5, 1, 2, 4).contiguous()
+        x = x.view(b, c * self.block_size * self.block_size, unfolded_h, unfolded_w)
+        return x

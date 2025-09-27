@@ -47,6 +47,8 @@ from .block import (
     CBFuse,
     CBLinear,
     ContrastiveHead,
+    Depth2Space,
+    Space2Depth,
     GhostBottleneck,
     HGBlock,
     HGStem,
@@ -179,4 +181,6 @@ __all__ = (
     "TorchVision",
     "Index",
     "A2C2f",
+    "Depth2Space",
+    "Space2Depth",
 )
